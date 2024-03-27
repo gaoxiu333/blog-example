@@ -1,0 +1,34 @@
+---
+title: "Two Forms of Pre-rendering"
+createdAt: "2023-05-09T03:05:58.626Z"
+updatedAt: "2023-05-09T03:05:58.626Z"
+isPublished: true
+
+# title: How I Built My Blog
+# seoTitle: How I Built my Blog using MDX, Next.js, and React
+# abstract: An in-depth look at the technical structure for my blog.
+# isPublished: true
+# publishedOn: 2021-04-20T09:15:00-0400
+# layout: Article
+---
+
+# 标题1
+
+## 标题2
+
+### 标题三
+
+正文
+```js
+"use client";
+
+import { useEffect } from "react";
+
+export function Log({ infos }: { infos: any }) {
+  useEffect(() => {
+    console.log("log", infos);
+  });
+  return null;
+}
+
+```
