@@ -1,4 +1,4 @@
-import { getAllArticlesData } from "@/lib/mdx";
+import { getAllArticlesData } from "@/lib/readMdxFile";
 import { formatDateTime } from "@/lib/time";
 import { Link } from "@nextui-org/react";
 

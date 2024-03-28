@@ -1,45 +1,46 @@
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import { bundleMDX } from "mdx-bundler";
+import { readMdxRaw } from "./readFileRaw";
+
+// mdx plugins
+import rehypeCodeTitles from "rehype-code-titles";
+import rehypePrism from "rehype-prism-plus";
+import remarkGfm from "remark-gfm";
+import remarkSmartypants from "@silvenon/remark-smartypants";
+import rehypeSlug from "rehype-slug";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
+import rehypeToc from "@jsdevtools/rehype-toc";
 import readingTime from "reading-time";
 
-const articlesDirectory = path.join(process.cwd(), "app/_articles");
-
-// 获取 MDX/MD 原始数据
-export function getMdxRawData(fileName: string, hasSuffix: boolean) {
-  let fullPath = path.join(articlesDirectory, `${fileName}`);
-  let suffix = hasSuffix // 判断是否有后缀，没有的话就加上后缀
-    ? ""
-    : fs.existsSync(`${fullPath}.mdx`)
-    ? ".mdx"
-    : ".md";
-  const fileContnts = fs.readFileSync(`${fullPath}${suffix}`, "utf8");
-  return fileContnts;
-}
-
-// 处理 MDX/MD 原始数据中的 frontmatter
-export function getMdxFrontmatter(mdxRawData: string) {
-  const { content, data } = matter(mdxRawData);
-  return {
-    content,
-    frontmatter: data,
-    readingTime: readingTime(content).text, // 计算阅读时间
-  };
-}
-
-// 获取文章的所有信息
-export function getArticlesData(fileName: string, hasSuffix = false) {
-  return {
-    ...getMdxFrontmatter(getMdxRawData(fileName, hasSuffix)),
-    fileName: fileName.split(".").slice(0, -1).join("."), // 去除后缀
-  };
-}
-
-// 获取 _articles 目录下的所有文章
-export function getAllArticlesData() {
-  const fileNames = fs.readdirSync(articlesDirectory);
-  const allArticlesData = fileNames.map((fileName) => {
-    return getArticlesData(fileName, true);
+export async function getMdxData(fileName: string) {
+  const { fileContnts, fullPath } = await readMdxRaw(fileName);
+  console.log("fullPath", fullPath);
+  const result = await bundleMDX({
+    file: fullPath,
+    // source: fileContnts,
+    mdxOptions: (options) => {
+      options.remarkPlugins = [
+        ...(options.remarkPlugins ?? []),
+        remarkGfm, // github 风格的markdown
+        remarkSmartypants, // 更聪明的标点符号
+      ];
+      options.rehypePlugins = [
+        ...(options.rehypePlugins ?? []),
+        rehypeSlug, // 给标题添加id属性
+        rehypeAutolinkHeadings, // 给标题添加锚点
+        [
+          rehypeToc, // 生成目录
+          {
+            headings: ["h1", "h2", "h3"],
+          },
+        ],
+        rehypeCodeTitles, // 代码块增加标题
+        rehypePrism, // 代码高亮
+      ];
+      return options;
+    },
   });
-  return allArticlesData;
+  return {
+    ...result,
+    readingTime: readingTime(result?.matter.content).text, // 计算阅读时间
+  };
 }
