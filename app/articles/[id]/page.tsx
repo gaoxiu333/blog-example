@@ -1,28 +1,23 @@
-import { getMdxData } from "@/lib/mdx";
-import { formatDateTime } from "@/lib/time";
-import { getMDXComponent } from "mdx-bundler/client";
-import * as React from "react";
+import { getArticleDetails } from "@/lib/articles";
+import { ArticlesDetails } from "./components/ArticlesDertails";
 
-const Page: React.FC = async ({ params }: any) => {
-  const { code, frontmatter, readingTime } = await getMdxData(
+const Page = async ({ params }: any) => {
+  const { frontmatter, readingTime, code } = await getArticleDetails(
     decodeURIComponent(params.id)
   );
-  const Component = getMDXComponent(code);
-
   return (
-    <main className="container pb-24">
-      <header className="py-6 mb-6">
-        <h1 className="text-2xl font-semibold">{frontmatter.title}</h1>
-        <p className="text-default-500 text-small">
-          <span>
-            {formatDateTime(frontmatter.createdAt)} · {readingTime}
-          </span>
+    <main className="container">
+      <header className="my-6">
+        <h2 className="text-center text-3xl font-black text-default-700">
+          {frontmatter.title}
+        </h2>
+        <p className="text-center text-sm  text-default-400">
+          {frontmatter.createdAt} · {readingTime}
         </p>
       </header>
-      <article className="prose !max-w-none dark:prose-invert">
-        <Component />
-      </article>
+      <ArticlesDetails content={code} />
     </main>
   );
 };
+
 export default Page;
